@@ -2,12 +2,6 @@ const fs = require('fs')
 const readline = require('readline')
 const assert = require('assert')
 const app = require('express')()
-let tweets = fs.readFile('./tweet.txt', 'ascii', (err, data) => {
-  if(err){
-    return console.log(err)
-  }
-  console.log("data read")
-})
 
 let users = {}
 let streams = {}
@@ -27,7 +21,7 @@ userInterface.on('line', (line) => {
   // console.log(`words: ${words}, user: ${user}, follows: ${follows}`)
 
   if(users[user]) {
-    users[user] = [...users[user], ...follows]
+    users[user] = [...users[user], ...follows] // allows repeat entries: a set would be better
   }  else {
     users[user] = follows // bug: this overwrites previous entries
   }
@@ -46,11 +40,12 @@ tweetInterface.on('line', (line) => {
   const words = line.split(' ')
   const tweeter = words[0].replace(/(^>)|(>$)/g, '') // Thanks StackOverflow: this should knock off the last > in the tweeter's name
   // console.log(`tweeter: `, tweeter)
+  console.log("from tweetInterface, users = ", users) // for some reason the last user isn't here
   Object.keys(users).forEach((user) => {
     console.log('from inside the tweet for loop, user = ', user) // bug: Vitalik skipped for some reason
     if (users[user].includes(tweeter)) {
       if(streams[user]) {
-        streams[user].push(line)
+        streams[user] = [...streams[user], line]
       } else {
         streams[user] = [line]
       }
