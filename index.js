@@ -10,6 +10,7 @@ let tweets = fs.readFile('./tweet.txt', 'ascii', (err, data) => {
 })
 
 let users = {}
+let streams = {}
 
 const userInterface = readline.createInterface({
   input: fs.createReadStream('./user.txt'),
@@ -18,24 +19,21 @@ const userInterface = readline.createInterface({
 })
 
 userInterface.on('line', (line) => {
-  const words = line.split(' ')
+  const words = line.replace(/,/g, '').split(' ') // bug: commas in usernames are removed
   assert(words[1] === 'follows')
   const user = words[0]
-  const follows = words.slice(2)
-  // this next part was to sanitize trailing commas, not currently working
-  // follows.forEach(word => {
-  //   const splitword = word.split('')
-  //   console.log(splitword)
-  //   console.log(splitword[-1])
-  //   if(splitword[-1] === ','){
-  //     word = word.slice(0, -1)
-  //   }
-  // }) //makes problems for users with , as last char of name
+  const follows = words.slice(2) // takes everything in the string starting from position 2
 
-  console.log(`words: ${words}, user: ${user}, follows: ${follows}`)
-  users[user] = follows // this overwrites previous entries
-  console.log('users: ', users)
+  // console.log(`words: ${words}, user: ${user}, follows: ${follows}`)
+
+  if(users[user]) {
+    users[user] = [...users[user], ...follows]
+  }  else {
+    users[user] = follows // bug: this overwrites previous entries
+  }
+  console.log('USERS: ', users)
 })
+
 
 const tweetInterface = readline.createInterface({
   input: fs.createReadStream('./tweet.txt'),
@@ -45,8 +43,22 @@ const tweetInterface = readline.createInterface({
 
 
 tweetInterface.on('line', (line) => {
-
+  const words = line.split(' ')
+  const tweeter = words[0].replace(/(^>)|(>$)/g, '') // Thanks StackOverflow: this should knock off the last > in the tweeter's name
+  // console.log(`tweeter: `, tweeter)
+  Object.keys(users).forEach((user) => {
+    console.log('from inside the tweet for loop, user = ', user) // bug: Vitalik skipped for some reason
+    if (users[user].includes(tweeter)) {
+      if(streams[user]) {
+        streams[user].push(line)
+      } else {
+        streams[user] = [line]
+      }
+    }
+  })
+  console.log(`STREAMS: `, streams)
 })
+
 
 app.get('/', (req, res) => res.send('Hello from the server'))
 
