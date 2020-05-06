@@ -7,11 +7,16 @@ def processUsers(userFile):
     for line in userLines:
         line = line.strip()
         user = line.partition(' ')[0]
-        following = line.replace(',', '').split(' ')[2:] # bug: can't have commas in usernames
-        try:
-            userDict[user].update(following)
-        except KeyError:
-            userDict[user] =  set(following)
+        splitUser = line.replace(',', '').split(' ') # bug: can't have commas in usernames
+        if len(splitUser) >= 3:
+            following = splitUser[2:]
+            try:
+                userDict[user].update(following)
+            except KeyError:
+                userDict[user] =  set(following)
+        else:
+            if user not in userDict:
+                userDict[user] = None
 
     return userDict
 
@@ -29,4 +34,5 @@ def createStreams(userFile, tweetFile):
                 if len(message) <= 280: # not sure about >280 failing silently, but this way loop keeps on going
                     print(f"\t@{tweeter}: {message}")
 
-createStreams("../user.txt", "../tweet.txt")
+if __name__ == "__main__":
+    createStreams("../user.txt", "../tweet.txt")
