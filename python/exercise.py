@@ -1,4 +1,4 @@
-from collections import OrderedDict as od
+from collections import OrderedDict as ordered
 
 def processUsers(userFile):
     userDict = {}
@@ -20,7 +20,7 @@ def processUsers(userFile):
                 userDict[user] = []
 
     # Ordered dictionaries let us alphabetize the keys to the dictionary
-    userDict = od(sorted(userDict.items()))
+    userDict = ordered(sorted(userDict.items()))
 
     return userDict
 

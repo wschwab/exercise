@@ -14,58 +14,50 @@ const users = {}
 const streams = {}
 
 async function createUsers() {
-  const userInterface = await readline.createInterface({
-    input: fs.createReadStream('../user.txt'),
-    output: process.stdout,
-    console: false
+  const fileStream = fs.createReadStream('../user.txt')
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity // per StackOverflow 'Read a file one line at a time in node.js'
   })
 
-  await userInterface.on('line', (line) => {
+  for await (const line of rl) {
     const words = line.replace(/,/g, '').split(' ') // bug: commas in usernames are removed
     assert(words[1] === 'follows')
     const user = words[0]
     const follows = words.slice(2) // takes everything in the string starting from position 2
 
-    // console.log(`words: ${words}, user: ${user}, follows: ${follows}`)
-
     if(users[user]) {
       users[user] = [...users[user], ...follows] // allows repeat entries: a set would be better
     }  else {
-      users[user] = follows // bug: this overwrites previous entries
+      users[user] = follows
     }
-    console.log('USERS: ', users)
-  })
+  }
 }
 
 
-let createStreams = () => {
+async function createStreams() {
   createUsers()
-  // userInterface.close()
-  // process.stdin.destroy()
 
-  const tweetInterface = readline.createInterface({
-    input: fs.createReadStream('../tweet.txt'),
-    output: process.stdout,
-    console: false
+  const fileStream = fs.createReadStream('../tweet.txt')
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
   })
 
-  tweetInterface.on('line', (line) => {
+  for await (const line of rl) {
     const words = line.split(' ')
     const tweeter = words[0].replace(/(^>)|(>$)/g, '') // Thanks StackOverflow: this should knock off the last > in the tweeter's name
-    // console.log(`tweeter: `, tweeter)
-    console.log("from tweetInterface, users = ", users) // for some reason the last user isn't here
-    Object.keys(users).forEach((user) => {
-      console.log('from inside the tweet for loop, user = ', user) // bug: Vitalik skipped for some reason
-      if (users[user].includes(tweeter)) {
+    for (const [ user, follows ] of Object.entries(users)) {
+      if (follows.includes(tweeter)) {
         if(streams[user]) {
           streams[user] = [...streams[user], line]
         } else {
           streams[user] = [line]
         }
       }
-    })
-    console.log(`STREAMS: `, streams)
-  })
+    }
+  }
+  console.log(streams)
 }
 
 createStreams()
