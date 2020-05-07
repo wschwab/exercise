@@ -1,6 +1,7 @@
-userDict = {}
+from collections import OrderedDict as od
 
 def processUsers(userFile):
+    userDict = {}
     userTxt = open(userFile, "r")
     userLines = userTxt.readlines()
 
@@ -16,23 +17,31 @@ def processUsers(userFile):
                 userDict[user] =  set(following)
         else:
             if user not in userDict:
-                userDict[user] = None
+                userDict[user] = []
+
+    # Ordered dictionaries let us alphabetize the keys to the dictionary
+    userDict = od(sorted(userDict.items()))
 
     return userDict
 
 def createStreams(userFile, tweetFile):
-    processUsers(userFile)
+    userDict = processUsers(userFile)
     tweetTxt = open(tweetFile, "r")
     tweetLines = tweetTxt.readlines()
 
+    tweetStreams = ""
+
     for user in userDict:
-        print(f"{user}")
+        tweetStreams += f"{user}\n"
         for tweet in tweetLines:
             tweeter = tweet.partition(' ')[0][:-1] # The first [] grabs the first word, the second trims the ">"
             if tweeter in userDict[user]:
-                message = tweet[len(tweeter) + 1:]
+                message = tweet[len(tweeter) + 2:]
                 if len(message) <= 280: # not sure about >280 failing silently, but this way loop keeps on going
-                    print(f"\t@{tweeter}: {message}")
+                    tweetStreams = tweetStreams + f"\t@{tweeter}: {message}"
+        tweetStreams += "\n"
+
+    return tweetStreams
 
 if __name__ == "__main__":
-    createStreams("../user.txt", "../tweet.txt")
+    print(createStreams("../user.txt", "../tweet.txt"))
