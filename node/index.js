@@ -3,17 +3,15 @@ const readline = require('readline')
 const assert = require('assert')
 const app = require('express')()
 
-app.get('/', (req, res) => res.send('Hello from the server'))
-
-
+app.get('/', createStreams)
 
 const PORT = process.env.PORT || 7777
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
 
-const users = {}
-const streams = {}
 
 async function createUsers() {
+  const users = {}
+
   const fileStream = fs.createReadStream('../user.txt')
   const rl = readline.createInterface({
     input: fileStream,
@@ -32,11 +30,15 @@ async function createUsers() {
       users[user] = follows
     }
   }
+  return users
 }
 
 
 async function createStreams() {
-  createUsers()
+  const users = await createUsers()
+    .then(users => { return users })
+
+  const streams = {}
 
   const fileStream = fs.createReadStream('../tweet.txt')
   const rl = readline.createInterface({
@@ -46,18 +48,18 @@ async function createStreams() {
 
   for await (const line of rl) {
     const words = line.split(' ')
-    const tweeter = words[0].replace(/(^>)|(>$)/g, '') // Thanks StackOverflow: this should knock off the last > in the tweeter's name
+    const tweeter = words[0].slice(0,-1) // truncate the >
+    const message = line.slice(tweeter.length + 2) // 1 for the >, another for the space
     for (const [ user, follows ] of Object.entries(users)) {
       if (follows.includes(tweeter)) {
         if(streams[user]) {
-          streams[user] = [...streams[user], line]
+          streams[user] = [...streams[user], `@${tweeter}: ${message}`]
         } else {
-          streams[user] = [line]
+          streams[user] = [`@${tweeter}: ${message}`]
         }
       }
     }
   }
   console.log(streams)
+  return streams
 }
-
-createStreams()
