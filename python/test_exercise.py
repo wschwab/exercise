@@ -48,3 +48,17 @@ def test_createStreams():
     assert createStreams("test_users.txt", "test_tweets.txt") == expected_output
     remove("test_tweets.txt")
     remove("test_users.txt")
+
+def test_emptiness():
+    userTxt = open("test_users.txt", "w")
+    userTxt.write("     ")
+    userTxt.close()
+    with pytest.raises(Exception):
+        assert processUsers("test_users.txt")
+    remove("test_users.txt")
+    tweetTxt = open("test_tweets.txt", "w")
+    tweetTxt.write("     ")
+    tweetTxt.close()
+    with pytest.raises(Exception):
+        assert processUsers("test_tweets.txt")
+    remove("test_tweets.txt")
