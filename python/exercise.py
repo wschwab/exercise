@@ -1,6 +1,19 @@
 from collections import OrderedDict as ordered
 
+def validateAscii(file):
+    fileBytes = open(file, 'rb')
+    for lines in fileBytes:
+        try:
+            lines.decode('ascii')
+        except UnicodeDecodeError as e:
+            raise EncodingError("""
+                Part or all of the {file} input file is not encoded in ASCII\n
+                Input files must be encoded in ASCII
+            """)
+
 def processUsers(userFile):
+    validateAscii(userFile)
+
     userDict = {}
     userTxt = open(userFile, "r")
     userLines = userTxt.readlines()
@@ -25,6 +38,8 @@ def processUsers(userFile):
     return userDict
 
 def createStreams(userFile, tweetFile):
+    validateAscii(tweetFile)
+
     userDict = processUsers(userFile)
     tweetTxt = open(tweetFile, "r")
     tweetLines = tweetTxt.readlines()
