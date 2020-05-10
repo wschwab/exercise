@@ -1,22 +1,32 @@
+from chardet import detect
 from collections import OrderedDict as ordered
 
-def validateAscii(file):
-    fileBytes = open(file, 'rb')
-    for lines in fileBytes:
-        try:
-            lines.decode('ascii')
-        except UnicodeDecodeError as e:
-            raise EncodingError("""
-                Part or all of the {file} input file is not encoded in ASCII\n
-                Input files must be encoded in ASCII
-            """)
+def checkAscii(file):
+    fileBytes = open(file, 'rb').read()
+    if detect(fileBytes)["encoding"] != 'ascii':
+        raise TypeError("""
+            Part or all of the {file} input file is not encoded in ASCII\n
+            Input files must be encoded in ASCII
+        """)
 
 def processUsers(userFile):
-    validateAscii(userFile)
+    # print("USER FILE: " + userFile)
+    checkAscii(userFile)
 
     userDict = {}
     userTxt = open(userFile, "r")
     userLines = userTxt.readlines()
+
+    # check emptiness
+    empty= True
+    for line in userLines:
+        if len(line.split(' ')) >= 2 and line.split(' ')[1] == "follows":
+            empty = False
+            break
+    if empty:
+        raise TypeError("""
+            The {file} is either empty or improperly formatted
+        """)
 
     for line in userLines:
         line = line.strip()
@@ -38,11 +48,23 @@ def processUsers(userFile):
     return userDict
 
 def createStreams(userFile, tweetFile):
-    validateAscii(tweetFile)
+    checkAscii(tweetFile)
 
     userDict = processUsers(userFile)
     tweetTxt = open(tweetFile, "r")
     tweetLines = tweetTxt.readlines()
+
+    # check emptiness
+    empty= True
+    for line in tweetLines:
+        # potential bug: tweets full of spaces but empty pass
+        if len(line.split(' ')) >= 2 and line.split(' ')[0][-1] == '>':
+            empty = False
+            break
+    if empty:
+        raise TypeError("""
+            The {file} is either empty or improperly formatted
+        """)
 
     tweetStreams = ""
 
@@ -52,7 +74,7 @@ def createStreams(userFile, tweetFile):
             tweeter = tweet.partition(' ')[0][:-1] # The first [] grabs the first word, the second trims the ">"
             if tweeter in userDict[user]:
                 message = tweet[len(tweeter) + 2:]
-                if len(message) <= 280: # not sure about >280 failing silently, but this way loop keeps on going
+                if len(message) <= 280: # As requested, > 280 doesn't crash, but isn't printed
                     tweetStreams = tweetStreams + f"\t@{tweeter}: {message}"
         tweetStreams += "\n"
 
