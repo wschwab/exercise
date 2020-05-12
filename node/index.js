@@ -3,7 +3,7 @@ const readline = require('readline')
 const assert = require('assert')
 const app = require('express')()
 
-app.get('/', createStreams)
+app.get('/streams', createStreams)
 
 const PORT = process.env.PORT || 7777
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`))

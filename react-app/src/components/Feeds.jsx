@@ -6,19 +6,24 @@ const Feeds = () => {
 
   useEffect(() => {
     const fetchFeeds = async () => {
-      const response = await fetch('/', { accept: 'application/json'})
+      console.log("fetchFeeds called")
+      const response = await fetch('/streams', { accept: 'application/json'})
+      console.log("RESPONSE: ", response)
       const body = await response.json()
-      console.log("YO BODY IS: ", body)
+      console.log("BODY: ", body)
+      if (response.status !== 200) throw Error(body.message)
+
+      return body
       }
 
     fetchFeeds().then(body => setFeeds(body)).catch(err => err)
   }, [])
 
-  console.log("YO FEEDS[0] IS ", feeds[0])
+  console.log("YO FEEDS IS ", feeds)
 
   return (
     <>
-      {feeds.map(feed => (
+      {feeds && Object.keys(feeds).map(feed => (
         <Feed feed={feed} />
       ))},
     </>

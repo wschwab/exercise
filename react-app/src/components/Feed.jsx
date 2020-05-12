@@ -4,12 +4,13 @@ const Feed = ({ feedData }) => {
     const [feed, setFeed] = useState('')
 
     useEffect(feedData => {
-      let tweets = ""
+      let user = Object.entries(feedData)[0][0]
+      let tweets = `${user}\n`
       for (const [, tweet] in Object.entries(feedData)){
             tweets = tweets + `\t${tweet}`
       }
       tweets = tweets + "\n"
-      setFeed(Object.entries(feed)[0], tweets)
+      setFeed(tweets)
     }, [])
 
     return (
