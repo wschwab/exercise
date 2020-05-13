@@ -43,7 +43,7 @@ const Feeds = () => {
       {feeds && Object.keys(feeds).map(feed => {
 
         return (
-          <Feed id={feed} tweets={feeds[feed]} />
+          <Feed id={feed} tweets={feeds[feed]} data-testid="feed" />
         )
       })},
     </>

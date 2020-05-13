@@ -3,9 +3,9 @@ import Feeds from './components/Feeds'
 
 function App() {
   return (
-    <div className="App">
-      <Feeds />
-    </div>
+    <>
+      <Feeds data-testid="feeds" />
+    </>
   );
 }
 
